@@ -1,0 +1,173 @@
+import pygame
+import random
+
+pygame.init()
+
+screen = pygame.display.set_mode((800, 500))
+pygame.display.set_caption("RPG Battle")
+
+font = pygame.font.SysFont(None, 32)
+big_font = pygame.font.SysFont(None, 48)
+
+player_x = 150
+player_y = 300
+monster_x = 600
+monster_y = 300
+
+player_hp = 30
+monster_hp = 30
+defending = False
+message = "A=Attack  H=Heal  D=Defend"
+game_over = False
+
+speed = 5
+clock = pygame.time.Clock()
+
+
+def draw_text(text, x, y, color=(0, 0, 0)):
+    img = font.render(text, True, color)
+    screen.blit(img, (x, y))
+
+
+def draw_bar(x, y, hp, max_hp):
+    width = 200
+    height = 20
+    hp = max(0, hp)
+
+    pygame.draw.rect(screen, (0, 0, 0), (x, y, width, height), 2)
+
+    fill = int(width * hp / max_hp)
+    pygame.draw.rect(screen, (0, 200, 0), (x, y, fill, height))
+
+
+def enemy_turn():
+    global player_hp, defending, message, game_over
+
+    enemy = random.randint(4, 9)
+
+    if defending:
+        enemy //= 2
+        defending = False
+
+    player_hp -= enemy
+    message += f" | Enemy hits {enemy}"
+
+    if player_hp <= 0:
+        player_hp = 0
+        message = "You Lose!"
+        game_over = True
+
+
+def player_attack():
+    global monster_hp, message, game_over
+
+    dmg = random.randint(5, 10)
+    monster_hp -= dmg
+    message = f"You hit {dmg}"
+
+    if monster_hp <= 0:
+        monster_hp = 0
+        message = "You Win!"
+        game_over = True
+    else:
+        enemy_turn()
+
+
+def player_heal():
+    global player_hp, message
+
+    heal = random.randint(4, 8)
+    player_hp += heal
+
+    if player_hp > 30:
+        player_hp = 30
+
+    message = f"You heal {heal}"
+    enemy_turn()
+
+
+def player_defend():
+    global defending, message
+
+    defending = True
+    message = "You defend"
+    enemy_turn()
+
+
+def restart():
+    global player_hp, monster_hp, defending, message, game_over
+
+    player_hp = 30
+    monster_hp = 30
+    defending = False
+    message = "A=Attack  H=Heal  D=Defend"
+    game_over = False
+
+
+running = True
+while running:
+    clock.tick(60)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_r:
+                restart()
+
+            if not game_over:
+                if event.key == pygame.K_a:
+                    player_attack()
+                elif event.key == pygame.K_h:
+                    player_heal()
+                elif event.key == pygame.K_d:
+                    player_defend()
+
+    keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_LEFT]:
+        player_x -= speed
+    if keys[pygame.K_RIGHT]:
+        player_x += speed
+    if keys[pygame.K_UP]:
+        player_y -= speed
+    if keys[pygame.K_DOWN]:
+        player_y += speed
+
+    screen.fill((220, 220, 220))
+
+    # 玩家
+    pygame.draw.circle(screen, (0, 100, 255), (player_x, player_y - 60), 30)
+    pygame.draw.rect(screen, (0, 100, 255), (player_x - 25, player_y - 30, 50, 80))
+    pygame.draw.line(screen, (0, 0, 0), (player_x - 25, player_y + 50), (player_x - 50, player_y + 100), 5)
+    pygame.draw.line(screen, (0, 0, 0), (player_x + 25, player_y + 50), (player_x + 50, player_y + 100), 5)
+
+    # 怪兽
+    pygame.draw.circle(screen, (200, 50, 50), (monster_x, monster_y - 40), 60)
+    pygame.draw.circle(screen, (255, 255, 255), (monster_x - 20, monster_y - 60), 12)
+    pygame.draw.circle(screen, (255, 255, 255), (monster_x + 20, monster_y - 60), 12)
+    pygame.draw.circle(screen, (0, 0, 0), (monster_x - 20, monster_y - 60), 5)
+    pygame.draw.circle(screen, (0, 0, 0), (monster_x + 20, monster_y - 60), 5)
+
+    pygame.draw.polygon(screen, (255, 255, 255), [
+        (monster_x - 20, monster_y),
+        (monster_x - 5, monster_y + 30),
+        (monster_x + 10, monster_y)
+    ])
+
+    # 血条和文字
+    draw_text("You", 80, 40)
+    draw_bar(80, 70, player_hp, 30)
+    draw_text(str(player_hp), 290, 65)
+
+    draw_text("Monster", 500, 40)
+    draw_bar(500, 70, monster_hp, 30)
+    draw_text(str(monster_hp), 710, 65)
+
+    draw_text(message, 80, 430)
+    draw_text("A=Attack  H=Heal  D=Defend  R=Restart", 80, 460)
+
+    pygame.display.update()
+
+pygame.quit()
