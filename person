@@ -1,0 +1,98 @@
+import random
+
+player = {
+    "name": "Hero",
+    "hp": 30,
+    "max_hp": 30,
+    "attack": 6,
+    "level": 1,
+    "gold": 0
+}
+
+monsters = [
+    {"name": "Slime", "hp": 10, "attack": 3, "gold": 5},
+    {"name": "Goblin", "hp": 16, "attack": 5, "gold": 10},
+    {"name": "Wolf", "hp": 20, "attack": 6, "gold": 15}
+]
+
+def show_status():
+    print("\n===== HERO STATUS =====")
+    print("Name:", player["name"])
+    print("Level:", player["level"])
+    print("HP:", player["hp"], "/", player["max_hp"])
+    print("Attack:", player["attack"])
+    print("Gold:", player["gold"])
+
+def battle(monster):
+    print("\nA wild", monster["name"], "appeared!")
+    
+    monster_hp = monster["hp"]
+
+    while monster_hp > 0 and player["hp"] > 0:
+        print("\nYour HP:", player["hp"])
+        print(monster["name"], "HP:", monster_hp)
+        choice = input("Choose: attack / heal / run: ").lower()
+
+        if choice == "attack":
+            damage = random.randint(1, player["attack"])
+            monster_hp -= damage
+            print("You attacked and did", damage, "damage!")
+
+        elif choice == "heal":
+            heal = random.randint(4, 10)
+            player["hp"] = min(player["max_hp"], player["hp"] + heal)
+            print("You healed", heal, "HP!")
+
+        elif choice == "run":
+            if random.random() < 0.5:
+                print("You escaped!")
+                return
+            else:
+                print("You failed to run away!")
+
+        else:
+            print("Invalid choice.")
+            continue
+
+        if monster_hp > 0:
+            damage = random.randint(1, monster["attack"])
+            player["hp"] -= damage
+            print(monster["name"], "attacked you for", damage, "damage!")
+
+    if player["hp"] <= 0:
+        print("\nGame Over! You were defeated.")
+    else:
+        print("\nYou defeated the", monster["name"] + "!")
+        player["gold"] += monster["gold"]
+        player["level"] += 1
+        player["attack"] += 1
+        player["max_hp"] += 5
+        player["hp"] = player["max_hp"]
+        print("You got", monster["gold"], "gold!")
+        print("Level up!")
+
+print("Welcome to Hero Adventure RPG!")
+
+while player["hp"] > 0:
+    print("\n===== MENU =====")
+    print("1. Explore")
+    print("2. Show Status")
+    print("3. Rest")
+    print("4. Quit")
+
+    action = input("Choose 1-4: ")
+
+    if action == "1":
+        monster = random.choice(monsters)
+        battle(monster.copy())
+    elif action == "2":
+        show_status()
+    elif action == "3":
+        player["hp"] = player["max_hp"]
+        print("You rested and recovered all HP.")
+    elif action == "4":
+        print("Thanks for playing!")
+        break
+    else:
+        print("Invalid choice.")
+    
